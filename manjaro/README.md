@@ -25,7 +25,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
 - Iconos WhiteSur, cursores y fondo Sonoma.
 - Botones cerrar/minimizar/maximizar a la izquierda y sin borde inferior añadido.
 - Panel superior con Tux mordido (adaptado de Papirus), menú global, bandeja y reloj a la derecha.
-- Dock flotante inferior centrado que esquiva ventanas; lanzadores habituales.
+- Dock flotante inferior centrado con ocultación automática; aparece al acercar
+  el puntero al borde inferior. Incluye los lanzadores habituales.
 - KRunner flotante mediante Super+Espacio y Alt+Espacio.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.

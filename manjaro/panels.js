@@ -61,7 +61,7 @@ dock.location = "bottom";
 dock.height = 64;
 dock.alignment = "center";
 dock.lengthMode = "fit";
-dock.hiding = "dodgewindows";
+dock.hiding = "autohide";
 dock.floating = true;
 dock.currentConfigGroup = ["General"];
 dock.writeConfig("macosSetupRole", "dock");
