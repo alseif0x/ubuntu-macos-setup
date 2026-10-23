@@ -184,6 +184,10 @@ def restore():
     finally:
         run('systemctl', '--user', 'start', 'plasma-plasmashell.service')
     run('qdbus6', 'org.kde.KWin', '/KWin', 'org.kde.KWin.reconfigure')
+    # Tema de Firefox de WhiteSur: enlaces chrome de cada perfil (user.js lo repone browsers.py).
+    for chrome in (HOME / '.mozilla/firefox').glob('*/chrome'):
+        if chrome.is_symlink() and chrome.resolve().name == 'firefox-themes':
+            chrome.unlink()
     run('python3', str(HERE / 'browsers.py'), '--restore')
     run('python3', str(HERE / 'appearance.py'), 'uninstall')
     print('Restaurado. Cierra sesión y vuelve a entrar para recargar todos los ajustes y atajos.')
@@ -237,6 +241,8 @@ def apply():
         ('kwinrc', 'TabBox', 'LayoutName', 'big_icons'),
         ('kwinrc', 'TabBox', 'ApplicationsMode', '1'),
         ('kwinrc', 'TabBox', 'HighlightWindows', 'false'),
+        # Sonidos suaves de elementary (system.sh); los de Apple no son redistribuibles.
+        ('kdeglobals', 'Sounds', 'Theme', 'elementary'),
         ('krunnerrc', 'General', 'FreeFloating', 'true'),
         ('krunnerrc', 'General', 'RetainPriorSearch', 'false'),
         ('krunnerrc', 'General', 'historyBehavior', 'Disabled'),
@@ -259,7 +265,8 @@ def apply():
     gtk.parent.mkdir(parents=True, exist_ok=True)
     for key, value in {'gtk-theme-name':'WhiteSur-Light', 'gtk-icon-theme-name':'WhiteSur-light',
                        'gtk-cursor-theme-name':'WhiteSur-cursors', 'gtk-font-name':'Inter 11',
-                       'gtk-decoration-layout':'close,minimize,maximize:'}.items():
+                       'gtk-decoration-layout':'close,minimize,maximize:',
+                       'gtk-sound-theme-name':'elementary'}.items():
         write(gtk, 'Settings', key, value)
         # GTK 4 conservaba Breeze y Noto: las apps libadwaita no casaban con el resto.
         write(HOME / '.config/gtk-4.0/settings.ini', 'Settings', key, value)

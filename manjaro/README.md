@@ -59,6 +59,13 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   (`org.macossetup.light/dark`) que conservan Klassy, fondo Sonoma con variante
   oscura y un vigilante (`macos-appearance.path`) que alterna GTK y Konsole.
   El horario se configura en Preferencias > Tema global.
+- Firefox con el tema WhiteSur (botones a la izquierda). Requiere Firefox cerrado
+  durante la instalación.
+- Sonidos de elementary, suaves y de estilo macOS. Los sonidos de Apple no se
+  incluyen porque no son redistribuibles.
+- `manjaro/system.sh` (root): inicio de sesión SDDM WhiteSur con el fondo Sonoma
+  y arranque Plymouth `bgrt` (logo del fabricante), que admite la contraseña de
+  cifrado LUKS. Guarda el tema de arranque anterior para restaurarlo.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.
   Chrome usa el tema GTK de WhiteSur. Los cambios se aplican con el navegador

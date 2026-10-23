@@ -6,7 +6,10 @@ cd "$(dirname "$0")"
 [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* ]] || { echo 'Se necesita una sesión KDE Plasma.' >&2; exit 1; }
 [[ "$(plasmashell --version)" == *' 6.'* ]] || { echo 'Se necesita Plasma 6.' >&2; exit 1; }
 case "${1:-}" in
-  --restore) exec python3 manjaro/desktop.py restore ;;
+  --restore)
+    if [[ -t 0 ]]; then elevate=(sudo); else elevate=(pkexec); fi
+    "${elevate[@]}" "$PWD/manjaro/system.sh" restore
+    exec python3 manjaro/desktop.py restore ;;
   --skip-packages|'') ;;
   *) echo 'Uso: ./install-manjaro.sh [--skip-packages|--restore]' >&2; exit 1 ;;
 esac
@@ -44,6 +47,16 @@ PY
 # GTK es para las aplicaciones GTK; el escritorio utiliza el tema nativo KDE.
 (cd "$src/WhiteSur-gtk-theme" && bash install.sh -c Light -a normal -l && bash install.sh -c Dark -a normal)
 bash scripts/20-fix-libadwaita-css.sh
+# Tema WhiteSur de Firefox (botones a la izquierda); necesita Firefox cerrado.
+if pgrep -x firefox >/dev/null; then
+  echo 'Firefox abierto: cierra Firefox y ejecuta  (cd ~/.themes-src/WhiteSur-gtk-theme && ./tweaks.sh -f)'
+else
+  (cd "$src/WhiteSur-gtk-theme" && bash tweaks.sh -f)
+fi
 python3 manjaro/desktop.py apply
+# Inicio de sesión, arranque y sonidos (root).
+if [[ -t 0 ]]; then elevate=(sudo); else elevate=(pkexec); fi
+"${elevate[@]}" "$PWD/manjaro/system.sh" apply "$src/WhiteSur-kde/sddm" \
+  "$(xdg-user-dir PICTURES)/Fondos-WhiteSur/Sonoma-light.jpg"
 printf '\nListo. Reabre las aplicaciones para que carguen WhiteSur.\n'
 printf 'Restaurar el escritorio previo: ./install-manjaro.sh --restore\n'
