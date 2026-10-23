@@ -1,5 +1,8 @@
 // Reutilizar paneles conserva bandeja, redes, batería y demás preferencias.
 var all = panels();
+// Wave Task (manjaro/plugins.sh) añade la magnificación de macOS; sin él se usa
+// el gestor de tareas de KDE.
+var wave = knownWidgetTypes.indexOf("org.vicko.wavetask") !== -1;
 var top = null, dock = null;
 for (var i = 0; i < all.length; ++i) {
     all[i].currentConfigGroup = ["General"];
@@ -38,6 +41,19 @@ var menu = ensure(top, "org.kde.plasma.appmenu");
 var spacer = ensure(top, "org.kde.plasma.panelspacer");
 spacer.currentConfigGroup = ["General"];
 spacer.writeConfig("expanding", true);
+// Con Wave Task, los applets del dock quedarían fuera de su fondo: Launchpad
+// vive en la barra superior (donde macOS tiene el Centro de control) y el dock
+// lo abre mediante el atajo global del applet (macos-launchpad.desktop).
+var launchpad = null;
+var topWidgets = top.widgets();
+for (var i = 0; i < topWidgets.length; ++i)
+    if (!wave && topWidgets[i].type === "org.kde.plasma.kickerdash") topWidgets[i].remove();
+if (wave) {
+    launchpad = ensure(top, "org.kde.plasma.kickerdash");
+    launchpad.currentConfigGroup = ["General"];
+    launchpad.writeConfig("icon", "view-app-grid-symbolic");
+    launchpad.globalShortcut = "Meta+Ctrl+Shift+F4";
+}
 var tray = ensure(top, "org.kde.plasma.systemtray");
 var clock = ensure(top, "org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];
@@ -49,18 +65,18 @@ clock.writeConfig("use24hFormat", 2);
 var ordered = [launch.id, menu.id, spacer.id];
 var kept = top.widgets();
 for (var i = 0; i < kept.length; ++i) {
-    if (ordered.indexOf(kept[i].id) === -1 && kept[i].id !== tray.id && kept[i].id !== clock.id)
-        ordered.push(kept[i].id);
+    var id = kept[i].id;
+    if (ordered.indexOf(id) === -1 && id !== tray.id && id !== clock.id && !(launchpad && id === launchpad.id))
+        ordered.push(id);
 }
+if (launchpad) ordered.push(launchpad.id);
 ordered.push(tray.id, clock.id);
 top.currentConfigGroup = ["General"];
 top.writeConfig("AppletOrder", ordered.join(";"));
 
 if (!dock) dock = new Panel;
-// Wave Task (manjaro/plugins.sh) añade la magnificación de macOS; sin él se usa
-// el gestor de tareas de KDE. Wave Task dibuja su propio fondo y necesita altura
-// para que el zoom no se recorte, por eso el panel queda transparente.
-var wave = knownWidgetTypes.indexOf("org.vicko.wavetask") !== -1;
+// Wave Task dibuja su propio fondo y necesita altura para que el zoom no se
+// recorte, por eso el panel queda transparente.
 dock.location = "bottom";
 dock.height = wave ? 86 : 64;
 dock.alignment = "center";
@@ -76,32 +92,39 @@ if (wave) {
     dock.writeConfig("userBackgroundHints", 4);
 }
 dock.currentConfigGroup = ["General"];
-// Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
-var launchpad = ensure(dock, "org.kde.plasma.kickerdash");
-launchpad.currentConfigGroup = ["General"];
-launchpad.writeConfig("icon", "view-app-grid");
-var taskType = wave ? "org.vicko.wavetask" : "org.kde.plasma.icontasks";
 var stale = dock.widgets();
 for (var i = 0; i < stale.length; ++i) {
     var type = stale[i].type;
-    if ((type === "org.kde.plasma.icontasks" || type === "org.vicko.wavetask") && type !== taskType)
+    var taskManager = type === "org.kde.plasma.icontasks" || type === "org.vicko.wavetask";
+    var applet = ["org.kde.plasma.kickerdash", "org.kde.plasma.marginsseparator", "org.kde.plasma.trash"].indexOf(type) !== -1;
+    if ((taskManager && type !== (wave ? "org.vicko.wavetask" : "org.kde.plasma.icontasks")) || (wave && applet))
         stale[i].remove();
 }
-var tasks = ensure(dock, taskType);
-tasks.currentConfigGroup = ["General"];
-tasks.writeConfig("launchers", ["applications:org.kde.dolphin.desktop", "applications:google-chrome.desktop", "applications:org.kde.konsole.desktop", "applications:org.kde.kate.desktop", "applications:chatgpt.desktop", "applications:com.anthropic.Claude.desktop", "applications:systemsettings.desktop"]);
-tasks.writeConfig("maxStripes", 1);
-tasks.writeConfig("unhideOnAttention", false);
-tasks.writeConfig("showToolTips", true);
+var launchers = ["applications:org.kde.dolphin.desktop", "applications:google-chrome.desktop", "applications:org.kde.konsole.desktop", "applications:org.kde.kate.desktop", "applications:chatgpt.desktop", "applications:com.anthropic.Claude.desktop", "applications:systemsettings.desktop"];
+var tasks;
 if (wave) {
+    tasks = ensure(dock, "org.vicko.wavetask");
+    tasks.currentConfigGroup = ["General"];
+    tasks.writeConfig("launchers", ["applications:macos-launchpad.desktop"].concat(launchers, ["applications:macos-trash.desktop"]));
     tasks.writeConfig("skinName", "Big Sur Light");
     tasks.writeConfig("iconSize", 48);
     tasks.writeConfig("showReflection", false);
+} else {
+    // Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
+    var dash = ensure(dock, "org.kde.plasma.kickerdash");
+    dash.currentConfigGroup = ["General"];
+    dash.writeConfig("icon", "view-app-grid");
+    tasks = ensure(dock, "org.kde.plasma.icontasks");
+    tasks.currentConfigGroup = ["General"];
+    tasks.writeConfig("launchers", launchers);
+    var separator = ensure(dock, "org.kde.plasma.marginsseparator");
+    var trash = ensure(dock, "org.kde.plasma.trash");
 }
-var separator = ensure(dock, "org.kde.plasma.marginsseparator");
-var trash = ensure(dock, "org.kde.plasma.trash");
+tasks.writeConfig("maxStripes", 1);
+tasks.writeConfig("unhideOnAttention", false);
+tasks.writeConfig("showToolTips", true);
 dock.currentConfigGroup = ["General"];
-dock.writeConfig("AppletOrder", [launchpad.id, tasks.id, separator.id, trash.id].join(";"));
+dock.writeConfig("AppletOrder", (wave ? [tasks.id] : [dash.id, tasks.id, separator.id, trash.id]).join(";"));
 
 var ds = desktops();
 for (var i = 0; i < ds.length; ++i) {
@@ -110,3 +133,4 @@ for (var i = 0; i < ds.length; ++i) {
     ds[i].writeConfig("Image", "file://" + userDataPath("pictures") + "/Fondos-WhiteSur/Sonoma-light.jpg");
 }
 print("Panel superior " + top.id + ", dock " + dock.id);
+if (launchpad) print("\nlaunchpad=" + launchpad.id);

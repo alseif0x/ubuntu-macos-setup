@@ -22,6 +22,8 @@ FILES = [
     '.local/share/applications/org.kde.konsole.desktop',
     '.config/klassy',
     '.config/inputactions/config.yaml',
+    '.local/share/applications/macos-trash.desktop',
+    '.local/share/applications/macos-launchpad.desktop',
 ]
 
 def run(*args, capture=False):
@@ -239,7 +241,28 @@ def apply():
     panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.
     panels = panels.replace('userDataPath("pictures") + "/Fondos-WhiteSur/Sonoma-light.jpg"', json.dumps(str(walls / 'Sonoma-light.jpg')))
-    run('qdbus6', 'org.kde.plasmashell', '/PlasmaShell', 'org.kde.PlasmaShell.evaluateScript', panels)
+    apps = HOME / '.local/share/applications'
+    apps.mkdir(parents=True, exist_ok=True)
+    (apps / 'macos-trash.desktop').write_text(
+        '[Desktop Entry]\nType=Application\nName=Papelera\nIcon=user-trash\n'
+        'Exec=dolphin trash:/\nCategories=System;\n')
+    # Plasma reescribe AppletOrder al añadir applets nuevos: la segunda pasada,
+    # ya sin altas, fija el orden definitivo.
+    for _ in range(2):
+        output = run('qdbus6', 'org.kde.plasmashell', '/PlasmaShell', 'org.kde.PlasmaShell.evaluateScript',
+                     panels, capture=True).stdout
+    launchpad = next((line.split('=', 1)[1].strip() for line in output.splitlines()
+                      if line.startswith('launchpad=')), None)
+    entry = apps / 'macos-launchpad.desktop'
+    if launchpad:
+        # Abre el applet de Launchpad de la barra superior desde el dock de Wave Task.
+        entry.write_text(
+            '[Desktop Entry]\nType=Application\nName=Launchpad\nIcon=view-app-grid\n'
+            'Exec=qdbus6 org.kde.kglobalaccel /component/plasmashell '
+            f'org.kde.kglobalaccel.Component.invokeShortcut "activate widget {launchpad}"\n'
+            'Categories=System;\n')
+    elif entry.exists():
+        entry.unlink()
     run('kbuildsycoca6', '--noincremental')
     # Recargar Shell aplica el orden de applets, iconos y tipografía en vivo.
     # Las ventanas abiertas y KWin siguen ejecutándose.
