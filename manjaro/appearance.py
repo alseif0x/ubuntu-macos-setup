@@ -5,11 +5,14 @@ Plasma cambia entre dos temas globales propios según la hora (amanecer y
 atardecer, configurable en Preferencias > Tema global). Esos temas solo tocan
 colores, iconos, estilo de Plasma y Kvantum: conservan Klassy, a diferencia del
 tema global de WhiteSur, que trae su decoración Aurorae. El fondo es un paquete
-con variante oscura, que Plasma alterna solo. Lo que Plasma no cambia (GTK 3 y
-Konsole) lo sincroniza `sync`, lanzado por una unidad .path al cambiar kdeglobals.
+con variante oscura, que Plasma alterna solo. Lo que Plasma no cambia (GTK 3) lo
+sincroniza `sync`, lanzado por una unidad .path al cambiar kdeglobals.
+
+Konsole se queda siempre claro: Claude Code, Codex y otras herramientas usan
+colores pensados para fondo claro y en el perfil oscuro su texto no se leía.
 
     appearance.py install PICTURES_DIR   instalar temas, fondo y vigilante
-    appearance.py sync                   aplicar GTK/Konsole según el esquema actual
+    appearance.py sync                   aplicar GTK según el esquema actual
     appearance.py uninstall              quitarlo (lo usa desktop.py restore)
 """
 import json
@@ -30,10 +33,10 @@ UNITS = HOME / '.config/systemd/user'
 VARIANTS = {
     'light': {'name': 'macOS claro', 'colors': 'WhiteSur', 'icons': 'WhiteSur-light',
               'style': 'kvantum', 'plasma': 'WhiteSur-alt', 'gtk': 'WhiteSur-Light',
-              'konsole': 'MacOS-Basic', 'whitesur': 'com.github.vinceliuice.WhiteSur-alt'},
+              'whitesur': 'com.github.vinceliuice.WhiteSur-alt'},
     'dark': {'name': 'macOS oscuro', 'colors': 'WhiteSurDark', 'icons': 'WhiteSur-dark',
              'style': 'kvantum-dark', 'plasma': 'WhiteSur-dark', 'gtk': 'WhiteSur-Dark',
-             'konsole': 'MacOS-Dark', 'whitesur': 'com.github.vinceliuice.WhiteSur-dark'},
+             'whitesur': 'com.github.vinceliuice.WhiteSur-dark'},
 }
 
 def run(*args, check=True, capture=False):
@@ -102,15 +105,6 @@ def wallpaper(pictures):
         '--group', 'org.kde.image', '--group', 'General', '--key', 'Image', f'file://{WALLPAPER}')
     return WALLPAPER
 
-def konsole_dark():
-    light = (HERE / 'MacOS-Basic.colorscheme').read_text()
-    dark = (light.replace('Description=macOS Terminal Basic', 'Description=macOS Terminal Basic (oscuro)')
-                 .replace('[Background]\nColor=255,255,255', '[Background]\nColor=30,30,30')
-                 .replace('[Foreground]\nColor=0,0,0', '[Foreground]\nColor=255,255,255'))
-    target = HOME / '.local/share/konsole'
-    target.mkdir(parents=True, exist_ok=True)
-    (target / 'MacOS-Dark.colorscheme').write_text(dark)
-
 def watcher():
     LIB.mkdir(parents=True, exist_ok=True)
     shutil.copy2(HERE / 'appearance.py', LIB / 'appearance.py')
@@ -119,7 +113,7 @@ def watcher():
         '[Unit]\nDescription=Vigilar el esquema de color de Plasma (macos-setup)\n\n'
         '[Path]\nPathChanged=%h/.config/kdeglobals\n\n[Install]\nWantedBy=default.target\n')
     (UNITS / 'macos-appearance.service').write_text(
-        '[Unit]\nDescription=Sincronizar GTK y Konsole con el modo claro/oscuro (macos-setup)\n\n'
+        '[Unit]\nDescription=Sincronizar GTK con el modo claro/oscuro (macos-setup)\n\n'
         f'[Service]\nType=oneshot\nExecStart=/usr/bin/python3 {LIB / "appearance.py"} sync\n')
     run('systemctl', '--user', 'daemon-reload')
     run('systemctl', '--user', 'enable', '--now', 'macos-appearance.path')
@@ -140,12 +134,7 @@ def install(pictures):
     for variant, v in VARIANTS.items():
         look_and_feel(variant, v)
     kvantum_dark()
-    konsole_dark()
     wallpaper(pictures)
-    for key, value in [('AutomaticLookAndFeel', 'true'),
-                       ('DefaultLightLookAndFeel', 'org.macossetup.light'),
-                       ('DefaultDarkLookAndFeel', 'org.macossetup.dark')]:
-        write('kdeglobals', 'KDE', key, value)
     watcher()
     # desktop.py acaba de escribir los valores claros: forzar la sincronización.
     STATE.unlink(missing_ok=True)
@@ -158,6 +147,11 @@ def install(pictures):
         night = False
     if night:
         run('plasma-apply-lookandfeel', '-a', 'org.macossetup.dark')
+    # Después de aplicar: plasma-apply-lookandfeel desactiva el cambio automático.
+    for key, value in [('AutomaticLookAndFeel', 'true'),
+                       ('DefaultLightLookAndFeel', 'org.macossetup.light'),
+                       ('DefaultDarkLookAndFeel', 'org.macossetup.dark')]:
+        write('kdeglobals', 'KDE', key, value)
 
 def uninstall():
     run('systemctl', '--user', 'disable', '--now', 'macos-appearance.path', check=False)
@@ -184,9 +178,6 @@ def sync():
         for key, value in [('gtk-theme', v['gtk']), ('icon-theme', v['icons']),
                            ('color-scheme', 'prefer-dark' if variant == 'dark' else 'default')]:
             run('gsettings', 'set', 'org.gnome.desktop.interface', key, value, check=False)
-    profile = HOME / '.local/share/konsole/MacOS-Basic.profile'
-    if profile.exists():
-        run('kwriteconfig6', '--file', str(profile), '--group', 'Appearance', '--key', 'ColorScheme', v['konsole'])
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(variant)
     print('Apariencia:', variant)

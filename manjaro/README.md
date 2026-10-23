@@ -57,7 +57,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   de previsualización.
 - Modo claro/oscuro automático según la hora: dos temas globales propios
   (`org.macossetup.light/dark`) que conservan Klassy, fondo Sonoma con variante
-  oscura y un vigilante (`macos-appearance.path`) que alterna GTK y Konsole.
+  oscura y un vigilante (`macos-appearance.path`) que alterna GTK. Konsole se
+  queda siempre claro para que Claude Code, Codex, etc. se lean bien.
   El horario se configura en Preferencias > Tema global.
 - Firefox con el tema WhiteSur (botones a la izquierda). Requiere Firefox cerrado
   durante la instalación.

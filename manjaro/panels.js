@@ -78,7 +78,9 @@ if (!dock) dock = new Panel;
 // Wave Task dibuja su propio fondo y necesita altura para que el zoom no se
 // recorte, por eso el panel queda transparente.
 dock.location = "bottom";
-dock.height = wave ? 86 : 64;
+// El icono ampliado mide iconSize × (1 + magnification/100): 44 × 1,6 ≈ 70 px,
+// más el margen del skin. Con menos altura el zoom se recortaba por arriba.
+dock.height = wave ? 104 : 64;
 dock.alignment = "center";
 dock.lengthMode = "fit";
 dock.hiding = "autohide";
@@ -107,7 +109,8 @@ if (wave) {
     tasks.currentConfigGroup = ["General"];
     tasks.writeConfig("launchers", ["applications:macos-launchpad.desktop"].concat(launchers, ["applications:macos-trash.desktop"]));
     tasks.writeConfig("skinName", "Big Sur Light");
-    tasks.writeConfig("iconSize", 48);
+    tasks.writeConfig("iconSize", 44);
+    tasks.writeConfig("magnification", 60);
     tasks.writeConfig("showReflection", false);
 } else {
     // Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
