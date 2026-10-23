@@ -32,6 +32,7 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   el puntero al borde inferior. Incluye los lanzadores habituales.
   Los avisos de aplicaciones no mantienen el dock desplegado; las notificaciones
   siguen disponibles en la bandeja superior.
+  La activación del borde es inmediata, sin brillo azul ni resistencia al puntero.
 - KRunner flotante mediante Super+Espacio y Alt+Espacio.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.

@@ -146,6 +146,10 @@ def apply():
         ('kwinrc', 'org.kde.kdecoration2', 'BorderSize', 'None'),
         ('kwinrc', 'org.kde.kdecoration2', 'BorderSizeAuto', 'false'),
         ('kwinrc', 'Plugins', 'blurEnabled', 'true'),
+        ('kwinrc', 'Plugins', 'screenedgeEnabled', 'false'),
+        ('kwinrc', 'Windows', 'ElectricBorderDelay', '0'),
+        ('kwinrc', 'Windows', 'ElectricBorderCooldown', '150'),
+        ('kwinrc', 'Windows', 'ElectricBorderPushbackPixels', '0'),
         ('krunnerrc', 'General', 'FreeFloating', 'true'),
         ('krunnerrc', 'General', 'RetainPriorSearch', 'false'),
         ('krunnerrc', 'General', 'historyBehavior', 'Disabled'),
@@ -189,6 +193,7 @@ def apply():
     runner_shortcuts([0x10000020, 0x08000020])
     run('qdbus6', 'org.kde.KWin', '/KWin', 'org.kde.KWin.reconfigure')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'blur')
+    run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.unloadEffect', 'screenedge')
     panels = (HERE / 'panels.js').read_text()
     panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.
