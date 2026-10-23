@@ -51,9 +51,13 @@ def window_theme():
     run('klassy-settings', '--load-windeco-preset', 'Eaten Fruits')
     target = HOME / '.config/klassy/klassyrc'
     for group, settings in {
-        'Windeco': {'WindowCornerRadius': '10', 'RoundAllCornersWhenNoBorders': 'true'},
+        'Windeco': {'WindowCornerRadius': '10', 'RoundAllCornersWhenNoBorders': 'true',
+                    'MatchTitleBarToApplicationColor': 'false'},
         'TitleBarSpacing': {'TitleBarTopMargin': '4', 'TitleBarBottomMargin': '4'},
-        'TitleBarOpacity': {'TitleBarOpacityActive': '100', 'TitleBarOpacityInactive': '100'},
+        'TitleBarOpacity': {'TitleBarOpacityActive': '95', 'TitleBarOpacityInactive': '90',
+                            'OverrideTitleBarOpacityActive': 'true',
+                            'OverrideTitleBarOpacityInactive': 'true',
+                            'OpaqueMaximizedTitleBars': 'true'},
         'ButtonColors': {'ButtonBackgroundOpacityActive': '100'},
         'ButtonSizing': {'ButtonSpacingLeft': '8'},
         'WindowOutlineStyle': {'WindowOutlineStyleActive': 'WindowOutlineNone',
@@ -156,6 +160,8 @@ def apply():
         shutil.copy2(base / ('WhiteSur.' + extension), compact / ('WhiteSur-Compact.' + extension))
     for key, value in [('frame', 'false'), ('frame.top', '0'), ('frame.bottom', '0')]:
         write(compact / 'WhiteSur-Compact.kvconfig', 'Window', key, value)
+    for key, value in [('translucent_windows', 'false'), ('reduce_window_opacity', '0')]:
+        write(compact / 'WhiteSur-Compact.kvconfig', '%General', key, value)
     write(HOME / '.config/Kvantum/kvantum.kvconfig', 'General', 'theme', 'WhiteSur-Compact')
 
     gtk = HOME / '.config/gtk-3.0/settings.ini'

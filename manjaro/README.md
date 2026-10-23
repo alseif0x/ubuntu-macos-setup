@@ -24,9 +24,14 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   en las cuatro esquinas. Evita la banda inferior de las decoraciones SVG.
 - Iconos WhiteSur, cursores y fondo Sonoma.
 - Botones cerrar/minimizar/maximizar a la izquierda y sin borde inferior añadido.
+- Las ventanas maximizadas tienen una barra de título opaca. La transparencia
+  suave queda limitada a los títulos de ventanas flotantes; las aplicaciones
+  Qt no reducen la opacidad de todo su contenido.
 - Panel superior con Tux mordido (adaptado de Papirus), menú global, bandeja y reloj a la derecha.
 - Dock flotante inferior centrado con ocultación automática; aparece al acercar
   el puntero al borde inferior. Incluye los lanzadores habituales.
+  Los avisos de aplicaciones no mantienen el dock desplegado; las notificaciones
+  siguen disponibles en la bandeja superior.
 - KRunner flotante mediante Super+Espacio y Alt+Espacio.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.

@@ -69,6 +69,7 @@ var tasks = ensure(dock, "org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", ["applications:org.kde.dolphin.desktop", "applications:google-chrome.desktop", "applications:org.kde.konsole.desktop", "applications:org.kde.kate.desktop", "applications:chatgpt.desktop", "applications:com.anthropic.Claude.desktop", "applications:systemsettings.desktop"]);
 tasks.writeConfig("maxStripes", 1);
+tasks.writeConfig("unhideOnAttention", false);
 tasks.writeConfig("showToolTips", true);
 ensure(dock, "org.kde.plasma.trash");
 
