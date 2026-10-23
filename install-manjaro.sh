@@ -14,18 +14,13 @@ esac
 python3 manjaro/desktop.py backup
 if [[ "${1:-}" != --skip-packages ]]; then
   if [[ -t 0 ]]; then elevate=(sudo); else elevate=(pkexec); fi
-  "${elevate[@]}" pacman -Syu --needed --noconfirm kvantum kvantum-qt5 inter-font sassc libxml2 git curl unzip python-dbus cmake gcc make extra-cmake-modules
+  "${elevate[@]}" pacman -Syu --needed --noconfirm kvantum kvantum-qt5 inter-font sassc libxml2 git curl unzip python-dbus cmake gcc make extra-cmake-modules \
+    vulkan-headers yaml-cpp libevdev pkgconf cli11 gtest
 fi
 
-# Decoración nativa: KWin recorta las esquinas del cliente, sin bandas SVG.
-if ! pacman -Q klassy >/dev/null 2>&1; then
-  build_dir="$HOME/.cache/macos-setup/klassy"
-  mkdir -p "$build_dir"
-  cp manjaro/klassy/PKGBUILD "$build_dir/PKGBUILD"
-  (cd "$build_dir" && makepkg --noconfirm)
-  if [[ -t 0 ]]; then elevate=(sudo); else elevate=(pkexec); fi
-  "${elevate[@]}" pacman -U --noconfirm "$build_dir"/klassy-*.pkg.tar.zst
-fi
+# Klassy (esquinas nativas), Wave Task (dock con zoom) e InputActions (gestos),
+# más el servicio que los recompila tras cada actualización de KDE.
+manjaro/plugins.sh install
 
 src="$HOME/.themes-src"
 mkdir -p "$src"

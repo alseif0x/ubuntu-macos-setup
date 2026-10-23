@@ -43,19 +43,47 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   ventanas de la aplicación actual.
 - Minimizar con efecto genio (Magic Lamp) y escritorios virtuales en una fila.
 - GTK 4 usa el mismo tema, iconos y tipografía que GTK 3.
+- Dock con magnificación al estilo macOS mediante Wave Task (skin Big Sur Light),
+  si está instalado; si no, se usa el gestor de tareas de KDE.
+- Gestos de tres dedos con InputActions: arriba Mission Control, abajo Exposé
+  de la aplicación, izquierda/derecha cambian de escritorio
+  (`manjaro/inputactions.yaml`).
+- El menú de Konsole aparece en la barra superior.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.
   Chrome usa el tema GTK de WhiteSur. Los cambios se aplican con el navegador
   cerrado; el instalador no cierra navegadores automáticamente. Para reiniciar
   Chrome guardando las pestañas: `python3 manjaro/browsers.py --restart-chrome`.
 
+## Plugins compilados
+
+`manjaro/plugins.sh install` compila como usuario e instala con pacman Klassy,
+Wave Task e InputActions. Los PKGBUILD de AUR están revisados y copiados en
+`manjaro/aur` (commit de origen en `manjaro/aur/SOURCES`), con el SHA256 del
+código fijado. Al estar compilados contra KWin/Plasma, se instala un hook de
+pacman y el servicio `macos-setup-rebuild.service`, que los recompilan solos
+tras cada actualización de KDE (también con la actualización diaria). Los
+cambios se cargan en el siguiente inicio de sesión.
+
+## Atajos tipo Cmd (opcional)
+
+Para Cmd+C/Cmd+V, Cmd+Q, etc. se recomienda [Toshy](https://github.com/RedBearAK/toshy),
+que reasigna modificadores por aplicación (en terminales conserva Ctrl). En un
+teclado de PC, Alt pasa a ser Cmd. Su instalador es interactivo y se ejecuta aparte:
+
+```bash
+curl -L -o /tmp/toshy.zip https://github.com/RedBearAK/toshy/archive/refs/heads/main.zip
+cd /tmp && unzip -o toshy.zip && cd toshy-main && ./setup_toshy.py install
+```
+
+Se desactiva desde su icono de la bandeja y se desinstala con `./setup_toshy.py uninstall`.
+
 Klassy 6.7.3 se compila como usuario normal desde el código oficial, con SHA256
 fijado, y se instala como paquete pacman. El PKGBUILD está en `manjaro/klassy`.
 La compilación usa dos tareas simultáneas. Requiere Plasma 6.6 o posterior.
 
 No instala GNOME ni extensiones de GNOME, Latte, nuevos servicios, SDDM ni
-fuentes propietarias de Apple. El dock usa el applet nativo de tareas y no
-incluye magnificación. El menú global requiere soporte de cada aplicación.
+fuentes propietarias de Apple. El menú global requiere soporte de cada aplicación.
 Las aplicaciones que dibujan sus propias ventanas pueden conservar su aspecto.
 El prompt de Zsh se conserva. En sesiones con varios monitores se transforma
 un panel principal, conservando los demás, y se aplica el fondo a los escritorios.

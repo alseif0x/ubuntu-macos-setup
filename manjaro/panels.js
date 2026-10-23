@@ -57,24 +57,47 @@ top.currentConfigGroup = ["General"];
 top.writeConfig("AppletOrder", ordered.join(";"));
 
 if (!dock) dock = new Panel;
+// Wave Task (manjaro/plugins.sh) añade la magnificación de macOS; sin él se usa
+// el gestor de tareas de KDE. Wave Task dibuja su propio fondo y necesita altura
+// para que el zoom no se recorte, por eso el panel queda transparente.
+var wave = knownWidgetTypes.indexOf("org.vicko.wavetask") !== -1;
 dock.location = "bottom";
-dock.height = 64;
+dock.height = wave ? 86 : 64;
 dock.alignment = "center";
 dock.lengthMode = "fit";
 dock.hiding = "autohide";
-dock.floating = true;
+dock.floating = !wave;
 dock.currentConfigGroup = ["General"];
 dock.writeConfig("macosSetupRole", "dock");
+// Igual que la plantilla de Wave Task: 4 oculta el fondo del tema.
+if (wave) {
+    dock.currentConfigGroup = [];
+    dock.writeConfig("backgroundHints", 4);
+    dock.writeConfig("userBackgroundHints", 4);
+}
+dock.currentConfigGroup = ["General"];
 // Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
 var launchpad = ensure(dock, "org.kde.plasma.kickerdash");
 launchpad.currentConfigGroup = ["General"];
 launchpad.writeConfig("icon", "view-app-grid");
-var tasks = ensure(dock, "org.kde.plasma.icontasks");
+var taskType = wave ? "org.vicko.wavetask" : "org.kde.plasma.icontasks";
+var stale = dock.widgets();
+for (var i = 0; i < stale.length; ++i) {
+    var type = stale[i].type;
+    if ((type === "org.kde.plasma.icontasks" || type === "org.vicko.wavetask") && type !== taskType)
+        stale[i].remove();
+}
+var tasks = ensure(dock, taskType);
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", ["applications:org.kde.dolphin.desktop", "applications:google-chrome.desktop", "applications:org.kde.konsole.desktop", "applications:org.kde.kate.desktop", "applications:chatgpt.desktop", "applications:com.anthropic.Claude.desktop", "applications:systemsettings.desktop"]);
 tasks.writeConfig("maxStripes", 1);
 tasks.writeConfig("unhideOnAttention", false);
 tasks.writeConfig("showToolTips", true);
+if (wave) {
+    tasks.writeConfig("skinName", "Big Sur Light");
+    tasks.writeConfig("iconSize", 48);
+    tasks.writeConfig("showReflection", false);
+}
 var separator = ensure(dock, "org.kde.plasma.marginsseparator");
 var trash = ensure(dock, "org.kde.plasma.trash");
 dock.currentConfigGroup = ["General"];

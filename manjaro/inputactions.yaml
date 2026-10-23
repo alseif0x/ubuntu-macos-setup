@@ -1,0 +1,34 @@
+# macos-setup: gestos de macOS con tres dedos (InputActions).
+# Si borras esta primera línea, el instalador no volverá a sobrescribir el archivo.
+touchpad:
+  gestures:
+    # Mission Control
+    - type: swipe
+      fingers: 3
+      direction: up
+      actions:
+        - on: begin
+          plasma_shortcut: kwin,Overview
+
+    # Exposé de la aplicación actual
+    - type: swipe
+      fingers: 3
+      direction: down
+      actions:
+        - on: begin
+          plasma_shortcut: kwin,ExposeClass
+
+    # Cambiar de escritorio: el contenido sigue a los dedos, como en macOS.
+    - type: swipe
+      fingers: 3
+      direction: left
+      actions:
+        - on: begin
+          plasma_shortcut: kwin,Switch One Desktop to the Right
+
+    - type: swipe
+      fingers: 3
+      direction: right
+      actions:
+        - on: begin
+          plasma_shortcut: kwin,Switch One Desktop to the Left

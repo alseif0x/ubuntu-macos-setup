@@ -21,6 +21,7 @@ FILES = [
     '.local/share/konsole/MacOS-Basic.colorscheme',
     '.local/share/applications/org.kde.konsole.desktop',
     '.config/klassy',
+    '.config/inputactions/config.yaml',
 ]
 
 def run(*args, capture=False):
@@ -211,12 +212,20 @@ def apply():
     write('konsolerc', 'Desktop Entry', 'DefaultProfile', 'MacOS-Basic.profile')
     run('python3', str(HERE / 'browsers.py'))
 
-    # Interfaz limpia para nuevas ventanas, conservando el menú global.
+    # Sin barra de herramientas; el menú pasa a la barra superior (--hide-menubar
+    # impediría que Konsole lo publique en el menú global).
     desktop = Path('/usr/share/applications/org.kde.konsole.desktop')
     if desktop.exists():
         target = HOME / '.local/share/applications/org.kde.konsole.desktop'
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(desktop.read_text().replace('Exec=konsole', 'Exec=konsole --hide-menubar --hide-toolbars'))
+        target.write_text(desktop.read_text().replace('Exec=konsole', 'Exec=konsole --hide-toolbars'))
+
+    # Gestos de tres dedos; se respeta un config.yaml propio del usuario.
+    gestures = HOME / '.config/inputactions/config.yaml'
+    marker = '# macos-setup:'
+    if not gestures.exists() or not gestures.read_text().strip() or gestures.read_text().startswith(marker):
+        gestures.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(HERE / 'inputactions.yaml', gestures)
 
     # Registrar el atajo en vivo: editar solo kglobalshortcutsrc no actualiza el daemon.
     runner_shortcuts([0x10000020, 0x08000020])
