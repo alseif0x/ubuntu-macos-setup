@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Plugins nativos compilados contra KWin/Plasma: Klassy (decoración), Wave Task
-# (dock con zoom) e InputActions (gestos). Tras actualizar KDE deben
+# (dock con zoom), InputActions (gestos) y Kiview (Vista rápida). Tras actualizar KDE deben
 # recompilarse; un hook de pacman lo programa y el servicio lo hace solo.
 #
 #   plugins.sh install        como usuario: compila lo que falte e instala
@@ -9,7 +9,7 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-PKGS=(klassy inputactions-ctl inputactions-kwin wavetask)
+PKGS=(klassy inputactions-ctl inputactions-kwin wavetask kiview)
 SYSTEM_LIB=/usr/local/lib/macos-setup
 here=$(cd "$(dirname "$0")" && pwd)
 

@@ -42,7 +42,7 @@ PY
 (cd "$src/WhiteSur-icon-theme" && bash install.sh -a)
 (cd "$src/WhiteSur-cursors" && bash install.sh)
 # GTK es para las aplicaciones GTK; el escritorio utiliza el tema nativo KDE.
-(cd "$src/WhiteSur-gtk-theme" && bash install.sh -c Light -a normal -l)
+(cd "$src/WhiteSur-gtk-theme" && bash install.sh -c Light -a normal -l && bash install.sh -c Dark -a normal)
 bash scripts/20-fix-libadwaita-css.sh
 python3 manjaro/desktop.py apply
 printf '\nListo. Reabre las aplicaciones para que carguen WhiteSur.\n'

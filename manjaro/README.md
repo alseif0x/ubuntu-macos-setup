@@ -51,6 +51,14 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   de la aplicación, izquierda/derecha cambian de escritorio
   (`manjaro/inputactions.yaml`).
 - El menú de Konsole aparece en la barra superior.
+- Dolphin como Finder: iconos con miniaturas, carpetas primero y sin archivos
+  ocultos (Ctrl+H los muestra). «Vista rápida» en el menú contextual con Kiview;
+  Dolphin aún no permite asignarla a la barra espaciadora. F11 muestra el panel
+  de previsualización.
+- Modo claro/oscuro automático según la hora: dos temas globales propios
+  (`org.macossetup.light/dark`) que conservan Klassy, fondo Sonoma con variante
+  oscura y un vigilante (`macos-appearance.path`) que alterna GTK y Konsole.
+  El horario se configura en Preferencias > Tema global.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.
   Chrome usa el tema GTK de WhiteSur. Los cambios se aplican con el navegador
