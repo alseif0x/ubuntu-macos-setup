@@ -4,6 +4,9 @@
 #       ./install.sh 40 60      (solo los pasos indicados)
 set -euo pipefail
 cd "$(dirname "$0")"
+if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* ]]; then
+  exec bash ./install-manjaro.sh "$@"
+fi
 source scripts/lib.sh
 
 require_gnome

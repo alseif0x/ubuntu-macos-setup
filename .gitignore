@@ -1,2 +1,4 @@
 *.orig
 *.pre-macos
+__pycache__/
+*.py[cod]

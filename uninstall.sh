@@ -4,6 +4,9 @@
 # que volver a activarlos es cuestion de reejecutar install.sh.
 set -euo pipefail
 cd "$(dirname "$0")"
+if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* ]]; then
+  exec bash ./install-manjaro.sh --restore
+fi
 source scripts/lib.sh
 
 step "Restaurando los ajustes por defecto de GNOME"

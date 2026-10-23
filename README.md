@@ -1,5 +1,16 @@
 # ubuntu-macos-setup
 
+## Manjaro / KDE Plasma 6
+
+La rama `manjaro-kde` añade un instalador específico para Plasma 6:
+
+```bash
+./install-manjaro.sh
+```
+
+Incluye copia de seguridad y restauración. Consulta [manjaro/README.md](manjaro/README.md).
+Las instrucciones siguientes corresponden al instalador original de Ubuntu/GNOME.
+
 Convierte un Ubuntu con GNOME en un clon visual de macOS: tema WhiteSur en
 ventanas y aplicaciones modernas, dock inferior translúcido, reloj a la derecha,
 notificaciones arriba a la derecha, buscador flotante tipo Spotlight y la
