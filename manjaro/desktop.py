@@ -238,6 +238,8 @@ def apply():
         # Minimizar con efecto genio; Alt+Tab con iconos grandes, una entrada por aplicación.
         ('kwinrc', 'Plugins', 'magiclampEnabled', 'true'),
         ('kwinrc', 'Plugins', 'squashEnabled', 'false'),
+        # InputActions es un efecto de KWin: no viene activado por defecto.
+        ('kwinrc', 'Plugins', 'kwin_gesturesEnabled', 'true'),
         ('kwinrc', 'TabBox', 'LayoutName', 'big_icons'),
         ('kwinrc', 'TabBox', 'ApplicationsMode', '1'),
         ('kwinrc', 'TabBox', 'HighlightWindows', 'false'),
@@ -301,6 +303,8 @@ def apply():
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.unloadEffect', 'screenedge')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.unloadEffect', 'squash')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'magiclamp')
+    if (Path('/usr/lib/qt6/plugins/kwin/effects/plugins/kwin_gestures.so')).exists():
+        run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'kwin_gestures')
     panels = (HERE / 'panels.js').read_text()
     panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.

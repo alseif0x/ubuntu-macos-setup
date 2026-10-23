@@ -97,7 +97,7 @@ case "${1:-}" in
     if [[ -t 0 ]]; then elevate=(sudo); else elevate=(pkexec); fi
     "${elevate[@]}" bash -c 'set -e; if (($# > 2)); then pacman -U --noconfirm "${@:3}"; fi; "$1" system-files "$2"' \
       _ "$here/plugins.sh" "$USER" "${files[@]}"
-    echo 'Plugins instalados. Cierra sesión y vuelve a entrar para que KWin cargue InputActions.' ;;
+    echo 'Plugins instalados. Ejecuta manjaro/desktop.py apply para activarlos (los gestos se cargan sin cerrar sesión).' ;;
   system-files)
     [[ $EUID -eq 0 ]] || { echo 'Requiere root.' >&2; exit 1; }
     install_system_files "$2" ;;
