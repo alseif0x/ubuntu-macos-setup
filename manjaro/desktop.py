@@ -32,14 +32,29 @@ def write(file, group, key, value):
         args += ['--group', name]
     run(*args, '--key', key, str(value))
 
-def runner_shortcuts(keys=None):
+def shortcuts(action, keys=None):
     import dbus
     bus = dbus.SessionBus()
     interface = dbus.Interface(bus.get_object('org.kde.kglobalaccel', '/kglobalaccel'), 'org.kde.KGlobalAccel')
-    action = dbus.Array(['org.kde.krunner.desktop', '_launch', 'KRunner', 'Run Command'], signature='s')
+    action = dbus.Array(action, signature='s')
     if keys is None:
         return [int(key) for key in interface.shortcut(action)]
     interface.setShortcut(action, dbus.Array(keys, signature='i'), dbus.UInt32(4))
+
+RUNNER = ['org.kde.krunner.desktop', '_launch', 'KRunner', 'Run Command']
+# Mission Control (Ctrl+↑) y Exposé de la aplicación (Ctrl+↓), como en macOS.
+KWIN_SHORTCUTS = {
+    'Overview': ([0x10000057], [0x10000057, 0x04000000 | 0x01000013]),
+    'ExposeClass': ([0x04000000 | 0x01000036, 0x10000000 | 0x01000036],
+                    [0x04000000 | 0x01000036, 0x04000000 | 0x01000015]),
+}
+
+def runner_shortcuts(keys=None):
+    return shortcuts(RUNNER, keys)
+
+def kwin_shortcuts(restore=False):
+    for name, (default, mac) in KWIN_SHORTCUTS.items():
+        shortcuts(['kwin', name, 'KWin', name], default if restore else mac)
 
 def window_theme():
     """Klassy recorta el cliente con KDecoration3, sin añadir un faldón SVG."""
@@ -51,15 +66,17 @@ def window_theme():
     run('klassy-settings', '--load-windeco-preset', 'Eaten Fruits')
     target = HOME / '.config/klassy/klassyrc'
     for group, settings in {
+        # Semáforos de unos 12 px y barra de 28 px, como en macOS.
         'Windeco': {'WindowCornerRadius': '10', 'RoundAllCornersWhenNoBorders': 'true',
-                    'MatchTitleBarToApplicationColor': 'false'},
-        'TitleBarSpacing': {'TitleBarTopMargin': '4', 'TitleBarBottomMargin': '4'},
+                    'MatchTitleBarToApplicationColor': 'false', 'IconSize': 'IconSmall',
+                    'ButtonSpacingLeft': '6', 'TitleBarTopMargin': '2', 'TitleBarBottomMargin': '2'},
+        'ButtonSizing': {'ButtonSpacingLeft': '6'},
+        'TitleBarSpacing': {'TitleBarTopMargin': '2', 'TitleBarBottomMargin': '2'},
         'TitleBarOpacity': {'TitleBarOpacityActive': '95', 'TitleBarOpacityInactive': '90',
                             'OverrideTitleBarOpacityActive': 'true',
                             'OverrideTitleBarOpacityInactive': 'true',
                             'OpaqueMaximizedTitleBars': 'true'},
         'ButtonColors': {'ButtonBackgroundOpacityActive': '100'},
-        'ButtonSizing': {'ButtonSpacingLeft': '8'},
         'WindowOutlineStyle': {'WindowOutlineStyleActive': 'WindowOutlineNone',
                                'WindowOutlineStyleInactive': 'WindowOutlineNone',
                                'WindowOutlineThickness': '0'},
@@ -90,6 +107,7 @@ def restore():
     manifest = json.loads((BACKUP / 'manifest.json').read_text())
     if 'krunner_shortcuts' in manifest:
         runner_shortcuts(manifest['krunner_shortcuts'])
+    kwin_shortcuts(restore=True)
     # Plasma guarda los paneles al salir: detenerlo antes de reponer su copia.
     run('systemctl', '--user', 'stop', 'plasma-plasmashell.service')
     try:
@@ -150,6 +168,15 @@ def apply():
         ('kwinrc', 'Windows', 'ElectricBorderDelay', '0'),
         ('kwinrc', 'Windows', 'ElectricBorderCooldown', '150'),
         ('kwinrc', 'Windows', 'ElectricBorderPushbackPixels', '0'),
+        # La esquina superior izquierda es el Tux: no abrir la vista general al ir a él.
+        ('kwinrc', 'ElectricBorders', 'TopLeft', 'None'),
+        ('kwinrc', 'Desktops', 'Rows', '1'),
+        # Minimizar con efecto genio; Alt+Tab con iconos grandes, una entrada por aplicación.
+        ('kwinrc', 'Plugins', 'magiclampEnabled', 'true'),
+        ('kwinrc', 'Plugins', 'squashEnabled', 'false'),
+        ('kwinrc', 'TabBox', 'LayoutName', 'big_icons'),
+        ('kwinrc', 'TabBox', 'ApplicationsMode', '1'),
+        ('kwinrc', 'TabBox', 'HighlightWindows', 'false'),
         ('krunnerrc', 'General', 'FreeFloating', 'true'),
         ('krunnerrc', 'General', 'RetainPriorSearch', 'false'),
         ('krunnerrc', 'General', 'historyBehavior', 'Disabled'),
@@ -174,6 +201,8 @@ def apply():
                        'gtk-cursor-theme-name':'WhiteSur-cursors', 'gtk-font-name':'Inter 11',
                        'gtk-decoration-layout':'close,minimize,maximize:'}.items():
         write(gtk, 'Settings', key, value)
+        # GTK 4 conservaba Breeze y Noto: las apps libadwaita no casaban con el resto.
+        write(HOME / '.config/gtk-4.0/settings.ini', 'Settings', key, value)
 
     konsole = HOME / '.local/share/konsole'
     konsole.mkdir(parents=True, exist_ok=True)
@@ -191,9 +220,12 @@ def apply():
 
     # Registrar el atajo en vivo: editar solo kglobalshortcutsrc no actualiza el daemon.
     runner_shortcuts([0x10000020, 0x08000020])
+    kwin_shortcuts()
     run('qdbus6', 'org.kde.KWin', '/KWin', 'org.kde.KWin.reconfigure')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'blur')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.unloadEffect', 'screenedge')
+    run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.unloadEffect', 'squash')
+    run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'magiclamp')
     panels = (HERE / 'panels.js').read_text()
     panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.

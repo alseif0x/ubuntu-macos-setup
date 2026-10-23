@@ -65,13 +65,20 @@ dock.hiding = "autohide";
 dock.floating = true;
 dock.currentConfigGroup = ["General"];
 dock.writeConfig("macosSetupRole", "dock");
+// Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
+var launchpad = ensure(dock, "org.kde.plasma.kickerdash");
+launchpad.currentConfigGroup = ["General"];
+launchpad.writeConfig("icon", "view-app-grid");
 var tasks = ensure(dock, "org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", ["applications:org.kde.dolphin.desktop", "applications:google-chrome.desktop", "applications:org.kde.konsole.desktop", "applications:org.kde.kate.desktop", "applications:chatgpt.desktop", "applications:com.anthropic.Claude.desktop", "applications:systemsettings.desktop"]);
 tasks.writeConfig("maxStripes", 1);
 tasks.writeConfig("unhideOnAttention", false);
 tasks.writeConfig("showToolTips", true);
-ensure(dock, "org.kde.plasma.trash");
+var separator = ensure(dock, "org.kde.plasma.marginsseparator");
+var trash = ensure(dock, "org.kde.plasma.trash");
+dock.currentConfigGroup = ["General"];
+dock.writeConfig("AppletOrder", [launchpad.id, tasks.id, separator.id, trash.id].join(";"));
 
 var ds = desktops();
 for (var i = 0; i < ds.length; ++i) {

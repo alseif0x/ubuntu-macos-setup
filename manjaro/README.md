@@ -23,7 +23,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
 - Decoración nativa Klassy con preset Eaten Fruits y recorte real del contenido
   en las cuatro esquinas. Evita la banda inferior de las decoraciones SVG.
 - Iconos WhiteSur, cursores y fondo Sonoma.
-- Botones cerrar/minimizar/maximizar a la izquierda y sin borde inferior añadido.
+- Botones cerrar/minimizar/maximizar pequeños (≈12 px) a la izquierda, barra de
+  título compacta y sin borde inferior añadido.
 - Las ventanas maximizadas tienen una barra de título opaca. La transparencia
   suave queda limitada a los títulos de ventanas flotantes; las aplicaciones
   Qt no reducen la opacidad de todo su contenido.
@@ -34,6 +35,14 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   siguen disponibles en la bandeja superior.
   La activación del borde es inmediata, sin brillo azul ni resistencia al puntero.
 - KRunner flotante mediante Super+Espacio y Alt+Espacio.
+- Launchpad (cuadrícula de aplicaciones) al inicio del dock y separador antes
+  de la papelera.
+- Mission Control con Ctrl+↑ (también Super+W) y Exposé de la aplicación
+  con Ctrl+↓. La esquina superior izquierda ya no abre la vista general.
+- Alt+Tab con iconos grandes y una entrada por aplicación; Alt+` recorre las
+  ventanas de la aplicación actual.
+- Minimizar con efecto genio (Magic Lamp) y escritorios virtuales en una fila.
+- GTK 4 usa el mismo tema, iconos y tipografía que GTK 3.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
 - Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.
   Chrome usa el tema GTK de WhiteSur. Los cambios se aplican con el navegador
