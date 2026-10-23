@@ -33,7 +33,7 @@ function ensure(panel, type) {
 }
 var launch = ensure(top, "org.kde.plasma.kickoff");
 launch.currentConfigGroup = ["General"];
-launch.writeConfig("icon", "start-here");
+launch.writeConfig("icon", "__TUX_ICON__");
 var menu = ensure(top, "org.kde.plasma.appmenu");
 var spacer = ensure(top, "org.kde.plasma.panelspacer");
 spacer.currentConfigGroup = ["General"];

@@ -19,6 +19,8 @@ FILES = [
     '.config/gtk-3.0/settings.ini', '.config/gtk-4.0', '.gtkrc-2.0',
     '.local/share/konsole/MacOS-Basic.profile',
     '.local/share/konsole/MacOS-Basic.colorscheme',
+    '.local/share/applications/org.kde.konsole.desktop',
+    '.config/klassy',
 ]
 
 def run(*args, capture=False):
@@ -38,6 +40,28 @@ def runner_shortcuts(keys=None):
     if keys is None:
         return [int(key) for key in interface.shortcut(action)]
     interface.setShortcut(action, dbus.Array(keys, signature='i'), dbus.UInt32(4))
+
+def window_theme():
+    """Klassy recorta el cliente con KDecoration3, sin añadir un faldón SVG."""
+    preset = Path('/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/klassydecoration/presets/Eaten_Fruits.klpw')
+    if not preset.exists():
+        raise RuntimeError('Falta Klassy: ejecutar el instalador completo antes de aplicar.')
+    # El importador oficial distribuye los campos del preset entre sus grupos.
+    run('klassy-settings', '--import-preset', str(preset))
+    run('klassy-settings', '--load-windeco-preset', 'Eaten Fruits')
+    target = HOME / '.config/klassy/klassyrc'
+    for group, settings in {
+        'Windeco': {'WindowCornerRadius': '10', 'RoundAllCornersWhenNoBorders': 'true'},
+        'TitleBarSpacing': {'TitleBarTopMargin': '4', 'TitleBarBottomMargin': '4'},
+        'TitleBarOpacity': {'TitleBarOpacityActive': '100', 'TitleBarOpacityInactive': '100'},
+        'ButtonColors': {'ButtonBackgroundOpacityActive': '100'},
+        'ButtonSizing': {'ButtonSpacingLeft': '8'},
+        'WindowOutlineStyle': {'WindowOutlineStyleActive': 'WindowOutlineNone',
+                               'WindowOutlineStyleInactive': 'WindowOutlineNone',
+                               'WindowOutlineThickness': '0'},
+    }.items():
+        for key, value in settings.items():
+            write(target, group, key, value)
 
 def backup():
     if (BACKUP / 'manifest.json').exists():
@@ -80,6 +104,7 @@ def restore():
     finally:
         run('systemctl', '--user', 'start', 'plasma-plasmashell.service')
     run('qdbus6', 'org.kde.KWin', '/KWin', 'org.kde.KWin.reconfigure')
+    run('python3', str(HERE / 'browsers.py'), '--restore')
     print('Restaurado. Cierra sesión y vuelve a entrar para recargar todos los ajustes y atajos.')
 
 def apply():
@@ -93,6 +118,10 @@ def apply():
     for name in ['Sonoma-light.jpg', 'Sonoma-dark.jpg']:
         shutil.copy2(HOME / '.themes-src/WhiteSur-wallpapers/4k' / name, walls / name)
 
+    window_theme()
+    icons = HOME / '.local/share/icons'
+    icons.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(HERE / 'assets/tux-bitten.svg', icons / 'tux-bitten.svg')
     run('plasma-apply-colorscheme', 'WhiteSur')
     run('plasma-apply-desktoptheme', 'WhiteSur-alt')
     # Aplicar componentes explícitos evita que un tema global sustituya paneles.
@@ -106,10 +135,12 @@ def apply():
         ('kdeglobals', 'General', 'fixed', 'DejaVu Sans Mono,11,-1,5,50,0,0,0,0,0'),
         ('kcminputrc', 'Mouse', 'cursorTheme', 'WhiteSur-cursors'),
         ('kcminputrc', 'Mouse', 'cursorSize', '24'),
-        ('kwinrc', 'org.kde.kdecoration2', 'library', 'org.kde.kwin.aurorae'),
-        ('kwinrc', 'org.kde.kdecoration2', 'theme', '__aurorae__svg__WhiteSur'),
-        ('kwinrc', 'org.kde.kdecoration2', 'ButtonsOnLeft', 'XAI'),
+        ('kwinrc', 'org.kde.kdecoration2', 'library', 'org.kde.klassy'),
+        ('kwinrc', 'org.kde.kdecoration2', 'theme', ''),
+        ('kwinrc', 'org.kde.kdecoration2', 'ButtonsOnLeft', 'XIA'),
         ('kwinrc', 'org.kde.kdecoration2', 'ButtonsOnRight', ''),
+        ('kwinrc', 'org.kde.kdecoration2', 'BorderSize', 'None'),
+        ('kwinrc', 'org.kde.kdecoration2', 'BorderSizeAuto', 'false'),
         ('kwinrc', 'Plugins', 'blurEnabled', 'true'),
         ('krunnerrc', 'General', 'FreeFloating', 'true'),
         ('krunnerrc', 'General', 'RetainPriorSearch', 'false'),
@@ -117,7 +148,15 @@ def apply():
     ]:
         write(file, group, key, value)
     (HOME / '.config/Kvantum').mkdir(parents=True, exist_ok=True)
-    write(HOME / '.config/Kvantum/kvantum.kvconfig', 'General', 'theme', 'WhiteSur')
+    # El cliente Qt tampoco necesita el marco interior de 10 px del tema.
+    compact = HOME / '.config/Kvantum/WhiteSur-Compact'
+    compact.mkdir(parents=True, exist_ok=True)
+    base = HOME / '.config/Kvantum/WhiteSur'
+    for extension in ['svg', 'kvconfig']:
+        shutil.copy2(base / ('WhiteSur.' + extension), compact / ('WhiteSur-Compact.' + extension))
+    for key, value in [('frame', 'false'), ('frame.top', '0'), ('frame.bottom', '0')]:
+        write(compact / 'WhiteSur-Compact.kvconfig', 'Window', key, value)
+    write(HOME / '.config/Kvantum/kvantum.kvconfig', 'General', 'theme', 'WhiteSur-Compact')
 
     gtk = HOME / '.config/gtk-3.0/settings.ini'
     gtk.parent.mkdir(parents=True, exist_ok=True)
@@ -131,12 +170,21 @@ def apply():
     shutil.copy2(HERE / 'MacOS-Basic.colorscheme', konsole)
     shutil.copy2(HERE / 'MacOS-Basic.profile', konsole)
     write('konsolerc', 'Desktop Entry', 'DefaultProfile', 'MacOS-Basic.profile')
+    run('python3', str(HERE / 'browsers.py'))
+
+    # Interfaz limpia para nuevas ventanas, conservando el menú global.
+    desktop = Path('/usr/share/applications/org.kde.konsole.desktop')
+    if desktop.exists():
+        target = HOME / '.local/share/applications/org.kde.konsole.desktop'
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(desktop.read_text().replace('Exec=konsole', 'Exec=konsole --hide-menubar --hide-toolbars'))
 
     # Registrar el atajo en vivo: editar solo kglobalshortcutsrc no actualiza el daemon.
     runner_shortcuts([0x10000020, 0x08000020])
     run('qdbus6', 'org.kde.KWin', '/KWin', 'org.kde.KWin.reconfigure')
     run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'blur')
     panels = (HERE / 'panels.js').read_text()
+    panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.
     panels = panels.replace('userDataPath("pictures") + "/Fondos-WhiteSur/Sonoma-light.jpg"', json.dumps(str(walls / 'Sonoma-light.jpg')))
     run('qdbus6', 'org.kde.plasmashell', '/PlasmaShell', 'org.kde.PlasmaShell.evaluateScript', panels)

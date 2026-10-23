@@ -19,13 +19,23 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
 
 ## Resultado
 
-- WhiteSur claro para Plasma, ventanas Aurorae, Qt/Kvantum y GTK/libadwaita.
+- WhiteSur claro para Plasma, Qt/Kvantum y GTK/libadwaita.
+- Decoración nativa Klassy con preset Eaten Fruits y recorte real del contenido
+  en las cuatro esquinas. Evita la banda inferior de las decoraciones SVG.
 - Iconos WhiteSur, cursores y fondo Sonoma.
-- Botones cerrar/minimizar/maximizar a la izquierda.
-- Panel superior con lanzador, menú global, bandeja y reloj a la derecha.
+- Botones cerrar/minimizar/maximizar a la izquierda y sin borde inferior añadido.
+- Panel superior con Tux mordido (adaptado de Papirus), menú global, bandeja y reloj a la derecha.
 - Dock flotante inferior centrado que esquiva ventanas; lanzadores habituales.
 - KRunner flotante mediante Super+Espacio y Alt+Espacio.
 - Perfil claro macOS Basic en Konsole, conservando Zsh y sus ajustes.
+- Chrome y Firefox conservan las pestañas integradas, sin otra fila de título.
+  Chrome usa el tema GTK de WhiteSur. Los cambios se aplican con el navegador
+  cerrado; el instalador no cierra navegadores automáticamente. Para reiniciar
+  Chrome guardando las pestañas: `python3 manjaro/browsers.py --restart-chrome`.
+
+Klassy 6.7.3 se compila como usuario normal desde el código oficial, con SHA256
+fijado, y se instala como paquete pacman. El PKGBUILD está en `manjaro/klassy`.
+La compilación usa dos tareas simultáneas. Requiere Plasma 6.6 o posterior.
 
 No instala GNOME ni extensiones de GNOME, Latte, nuevos servicios, SDDM ni
 fuentes propietarias de Apple. El dock usa el applet nativo de tareas y no
@@ -48,5 +58,6 @@ conviene cerrar sesión y entrar para recargar todos los atajos, cursores y esti
 Restaura los archivos completos guardados, por lo que también revierte otros
 ajustes posteriores en esos mismos archivos. Los paquetes y temas permanecen
 instalados. No toca archivos personales, claves SSH ni la configuración de Drive.
+Para restaurar también las preferencias de Chrome, ciérralo antes de restaurar.
 
 `--skip-packages` permite repetir la instalación si las dependencias ya existen.

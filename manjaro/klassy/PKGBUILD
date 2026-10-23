@@ -1,0 +1,30 @@
+# Klassy Qt6 para el recorte nativo de ventanas de Plasma 6.6+.
+# Basado en el PKGBUILD de AUR; se omite Qt5 y se limita la compilación.
+pkgname=klassy
+pkgver=6.7.3
+pkgrel=1
+pkgdesc='Native KDE window decoration with traffic-light buttons and clipped rounded corners'
+arch=('x86_64')
+url='https://github.com/paulmcauley/klassy'
+license=('GPL-2.0-only' 'GPL-3.0-only' 'GPL-2.0-or-later' 'LGPL-2.1-or-later' 'MIT')
+depends=('breeze-icons' 'hicolor-icon-theme' 'frameworkintegration' 'gcc-libs' 'glibc'
+         'kcmutils' 'kcolorscheme' 'kconfig' 'kcoreaddons' 'kdecoration' 'kguiaddons'
+         'ki18n' 'kiconthemes' 'kwidgetsaddons' 'kwindowsystem' 'qt6-base'
+         'qt6-declarative' 'qt6-svg' 'xdg-utils')
+makedepends=('cmake' 'extra-cmake-modules' 'gcc' 'make')
+source=("klassy-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('a3e9b96723cda1b3c46d6f456d495e5e34d051940e6f71aa9a345e8fb850e1fb')
+options=('!debug')
+
+build() {
+    cmake -B build -S "klassy-${pkgver}" \
+        -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_TESTING=OFF -DBUILD_QT5=OFF
+    cmake --build build --parallel 2
+}
+
+package() {
+    DESTDIR="${pkgdir}" cmake --install build
+    install -Dm644 "klassy-${pkgver}/LICENSES/MIT.txt" \
+        "${pkgdir}/usr/share/licenses/${pkgname}/MIT.txt"
+}
