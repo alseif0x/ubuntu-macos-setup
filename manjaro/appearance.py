@@ -124,6 +124,18 @@ def watcher():
     run('systemctl', '--user', 'daemon-reload')
     run('systemctl', '--user', 'enable', '--now', 'macos-appearance.path')
 
+def is_night():
+    """Consulta el horario de Plasma (knighttimed): cada ciclo es (mediodía,
+    inicio y fin del amanecer, inicio y fin del atardecer) en milisegundos."""
+    import time
+    import dbus
+    manager = dbus.Interface(dbus.SessionBus().get_object(
+        'org.kde.NightTime', '/org/kde/NightTime/Manager'), 'org.kde.NightTime.Manager')
+    data = manager.Subscribe(dbus.Dictionary({}, signature='sv'))
+    manager.Unsubscribe(data['Cookie'])
+    now = time.time() * 1000
+    return not any(cycle[2] <= now < cycle[3] for cycle in data['Schedule'][1])
+
 def install(pictures):
     for variant, v in VARIANTS.items():
         look_and_feel(variant, v)
@@ -138,6 +150,14 @@ def install(pictures):
     # desktop.py acaba de escribir los valores claros: forzar la sincronización.
     STATE.unlink(missing_ok=True)
     sync()
+    # desktop.py deja el modo claro; de noche, pasar ya al oscuro (el vigilante sigue).
+    try:
+        night = is_night()
+    except Exception as error:  # sin knighttimed se queda en claro hasta el próximo cambio
+        print('Horario de Plasma no disponible:', error)
+        night = False
+    if night:
+        run('plasma-apply-lookandfeel', '-a', 'org.macossetup.dark')
 
 def uninstall():
     run('systemctl', '--user', 'disable', '--now', 'macos-appearance.path', check=False)
