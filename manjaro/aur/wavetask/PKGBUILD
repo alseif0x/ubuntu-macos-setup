@@ -2,7 +2,7 @@
 
 pkgname=wavetask
 pkgver=1.4
-pkgrel=1
+pkgrel=2
 pkgdesc="A Plasma 6 task manager plasmoid with zoom effect"
 arch=('x86_64')
 url="https://github.com/vickoc911/org.vicko.wavetask"
@@ -43,6 +43,19 @@ source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('e657bcce319eb2a6076803d2c0c4de3497dc0be61d2ea3fd61be21baed15bda5')
 
 options=('!debug')
+
+# macos-setup: comportamiento del zoom como en macOS. Cada sed comprueba que la
+# línea existe, para que una versión nueva no deje el parche sin aplicar en silencio.
+prepare() {
+  cd "$_pkgsrc/package/contents/ui"
+  # El suavizado solo se actualizaba al mover el ratón: al parar, el centro del
+  # zoom quedaba un 70 % por detrás y el icono mayor no era el del puntero.
+  grep -q '(mousePos - taskList.smoothMouse) \* 0.3' main.qml
+  sed -i 's/(mousePos - taskList.smoothMouse) \* 0.3/(mousePos - taskList.smoothMouse)/' main.qml
+  # Etiqueta de los lanzadores: solo el nombre, sin la descripción genérica.
+  grep -q 'return toolTipDelegate.genericName;' ToolTipInstance.qml
+  sed -i 's/return toolTipDelegate.genericName;/return "";/' ToolTipInstance.qml
+}
 
 build() {
   cd "$_pkgsrc"

@@ -1,5 +1,5 @@
 # Copias de los PKGBUILD de AUR revisados (paquete y commit de aur.archlinux.org).
-wavetask 0825a276c9ffba18944750b91598c8c410174be9
+wavetask 0825a276c9ffba18944750b91598c8c410174be9 (prepare() con ajustes de zoom y etiqueta)
 inputactions-ctl 3ddda14347364a045963cbed14d638643953b9c8
 inputactions-kwin 9a11b3fc1745fe4a89830960dd8c17011050e715
 kiview c60ae56066cb96ac0aaf08b315ef6614dbe27de2 (prefijo /usr y Release añadidos)

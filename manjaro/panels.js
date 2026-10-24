@@ -116,6 +116,8 @@ if (wave) {
     tasks.writeConfig("skinName", "__WAVE_SKINS__/macOS-" + (dark ? "Dark" : "Light"));
     tasks.writeConfig("iconSize", 44);
     tasks.writeConfig("magnification", 60);
+    // Curva más concentrada en el icono del puntero (por defecto 1,8 iconos).
+    tasks.writeConfig("amplitud", 1.3);
     tasks.writeConfig("showReflection", false);
 } else {
     // Launchpad: cuadrícula de aplicaciones a pantalla completa, antes de los lanzadores.
