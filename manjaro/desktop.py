@@ -91,6 +91,8 @@ def window_theme():
         for key, value in settings.items():
             write(target, group, key, value)
 
+WAVE_SKINS_DIR = '/usr/share/plasma/plasmoids/org.vicko.wavetask/contents/skins'
+
 # Dolphin 24.05+ guarda la vista común en un atributo extendido, no en .directory.
 DOLPHIN_GLOBAL = HOME / '.local/share/dolphin/view_properties/global'
 DOLPHIN_XATTR = 'user.kde.fm.viewproperties#1'
@@ -306,6 +308,11 @@ def apply():
     if (Path('/usr/lib/qt6/plugins/kwin/effects/plugins/kwin_gestures.so')).exists():
         run('qdbus6', 'org.kde.KWin', '/Effects', 'org.kde.kwin.Effects.loadEffect', 'kwin_gestures')
     panels = (HERE / 'panels.js').read_text()
+    skins = HOME / '.local/share/macos-setup/wavetask-skins'
+    shutil.rmtree(skins, ignore_errors=True)
+    shutil.copytree(HERE / 'wavetask-skins', skins, ignore=shutil.ignore_patterns('README.md'))
+    # Wave Task resuelve el skin relativo a su carpeta skins/ del sistema.
+    panels = panels.replace('__WAVE_SKINS__', os.path.relpath(skins, WAVE_SKINS_DIR))
     panels = panels.replace('__TUX_ICON__', str(icons / 'tux-bitten.svg'))
     # Respetar el directorio de Imágenes aunque el usuario lo tenga personalizado.
     # Paquete Sonoma con variante oscura (appearance.py); Plasma alterna el fondo solo.

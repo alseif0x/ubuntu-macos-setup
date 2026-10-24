@@ -43,7 +43,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   ventanas de la aplicación actual.
 - Minimizar con efecto genio (Magic Lamp) y escritorios virtuales en una fila.
 - GTK 4 usa el mismo tema, iconos y tipografía que GTK 3.
-- Dock con magnificación al estilo macOS mediante Wave Task (skin Big Sur Light),
+- Dock con magnificación al estilo macOS mediante Wave Task, con skins propios
+  (`manjaro/wavetask-skins`) claro y oscuro que siguen el modo del sistema,
   si está instalado; si no, se usa el gestor de tareas de KDE. Con Wave Task,
   Launchpad y la papelera son lanzadores del propio dock y el applet de
   Launchpad pasa a la barra superior, junto a la bandeja.

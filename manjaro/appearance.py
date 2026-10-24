@@ -162,6 +162,18 @@ def uninstall():
         shutil.rmtree(path, ignore_errors=True)
     run('systemctl', '--user', 'daemon-reload', check=False)
 
+def wave_skin(variant):
+    """Skin del dock (manjaro/wavetask-skins) a juego con el modo."""
+    skins = HOME / '.local/share/macos-setup/wavetask-skins'
+    if not skins.exists():
+        return
+    relative = os.path.relpath(skins / ('macOS-Dark' if variant == 'dark' else 'macOS-Light'),
+                               '/usr/share/plasma/plasmoids/org.vicko.wavetask/contents/skins')
+    script = ('var p=panels();for(var i=0;i<p.length;i++){var w=p[i].widgets();'
+              'for(var j=0;j<w.length;j++)if(w[j].type=="org.vicko.wavetask"){'
+              'w[j].currentConfigGroup=["General"];w[j].writeConfig("skinName",' + json.dumps(relative) + ');}}')
+    run('qdbus6', 'org.kde.plasmashell', '/PlasmaShell', 'org.kde.PlasmaShell.evaluateScript', script, check=False)
+
 def sync():
     scheme = run('kreadconfig6', '--file', 'kdeglobals', '--group', 'General',
                  '--key', 'ColorScheme', capture=True).stdout.strip()
@@ -178,6 +190,7 @@ def sync():
         for key, value in [('gtk-theme', v['gtk']), ('icon-theme', v['icons']),
                            ('color-scheme', 'prefer-dark' if variant == 'dark' else 'default')]:
             run('gsettings', 'set', 'org.gnome.desktop.interface', key, value, check=False)
+    wave_skin(variant)
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(variant)
     print('Apariencia:', variant)

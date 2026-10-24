@@ -78,9 +78,9 @@ if (!dock) dock = new Panel;
 // Wave Task dibuja su propio fondo y necesita altura para que el zoom no se
 // recorte, por eso el panel queda transparente.
 dock.location = "bottom";
-// El icono ampliado mide iconSize × (1 + magnification/100): 44 × 1,6 ≈ 70 px,
-// más el margen del skin. Con menos altura el zoom se recortaba por arriba.
-dock.height = wave ? 104 : 64;
+// Wave Task coloca el fondo del skin con «altura del panel − 76»: sus skins
+// están pensados para 86 px con iconos de 44 px. El zoom (44 × 1,6 ≈ 70 px) cabe.
+dock.height = wave ? 86 : 64;
 dock.alignment = "center";
 dock.lengthMode = "fit";
 dock.hiding = "autohide";
@@ -108,7 +108,12 @@ if (wave) {
     tasks = ensure(dock, "org.vicko.wavetask");
     tasks.currentConfigGroup = ["General"];
     tasks.writeConfig("launchers", ["applications:macos-launchpad.desktop"].concat(launchers, ["applications:macos-trash.desktop"]));
-    tasks.writeConfig("skinName", "Big Sur Light");
+    // Skins propios (manjaro/wavetask-skins), claro u oscuro según el esquema
+    // actual; appearance.py los alterna al cambiar de modo.
+    var globals = ConfigFile("kdeglobals");
+    globals.group = "General";
+    var dark = /Dark$/.test(globals.readEntry("ColorScheme"));
+    tasks.writeConfig("skinName", "__WAVE_SKINS__/macOS-" + (dark ? "Dark" : "Light"));
     tasks.writeConfig("iconSize", 44);
     tasks.writeConfig("magnification", 60);
     tasks.writeConfig("showReflection", false);
