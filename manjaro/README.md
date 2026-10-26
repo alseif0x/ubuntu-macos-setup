@@ -39,8 +39,10 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   de la papelera.
 - Mission Control con Ctrl+↑ (también Super+W) y Exposé de la aplicación
   con Ctrl+↓. La esquina superior izquierda ya no abre la vista general.
-- Alt+Tab con iconos grandes y una entrada por aplicación; Alt+` recorre las
-  ventanas de la aplicación actual.
+- Alt+Tab con iconos grandes y una entrada por ventana. Agrupar por aplicación
+  juntaría las apps instaladas de Chrome con Chrome: KWin las considera la misma
+  aplicación porque comparten proceso. Alt+` recorre las ventanas de la
+  aplicación actual.
 - Minimizar con efecto genio (Magic Lamp) y escritorios virtuales en una fila.
 - GTK 4 usa el mismo tema, iconos y tipografía que GTK 3.
 - Dock con magnificación al estilo macOS mediante Wave Task, con skins propios

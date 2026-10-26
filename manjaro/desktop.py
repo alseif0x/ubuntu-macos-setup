@@ -237,13 +237,16 @@ def apply():
         # La esquina superior izquierda es el Tux: no abrir la vista general al ir a él.
         ('kwinrc', 'ElectricBorders', 'TopLeft', 'None'),
         ('kwinrc', 'Desktops', 'Rows', '1'),
-        # Minimizar con efecto genio; Alt+Tab con iconos grandes, una entrada por aplicación.
+        # Minimizar con efecto genio (magiclamp).
         ('kwinrc', 'Plugins', 'magiclampEnabled', 'true'),
         ('kwinrc', 'Plugins', 'squashEnabled', 'false'),
         # InputActions es un efecto de KWin: no viene activado por defecto.
         ('kwinrc', 'Plugins', 'kwin_gesturesEnabled', 'true'),
         ('kwinrc', 'TabBox', 'LayoutName', 'big_icons'),
-        ('kwinrc', 'TabBox', 'ApplicationsMode', '1'),
+        # Alt+Tab con iconos grandes y una entrada por ventana: agrupando por aplicación,
+        # KWin junta las apps instaladas de Chrome (WhatsApp, Bitwarden…) con Chrome
+        # porque comparten proceso.
+        ('kwinrc', 'TabBox', 'ApplicationsMode', '0'),
         ('kwinrc', 'TabBox', 'HighlightWindows', 'false'),
         # Sonidos suaves de elementary (system.sh); los de Apple no son redistribuibles.
         ('kdeglobals', 'Sounds', 'Theme', 'elementary'),
