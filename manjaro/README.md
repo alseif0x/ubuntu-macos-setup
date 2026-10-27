@@ -54,6 +54,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   de la aplicación, izquierda/derecha cambian de escritorio
   (`manjaro/inputactions.yaml`).
 - El menú de Konsole aparece en la barra superior.
+- El vídeo flotante «Imagen en imagen» de Chrome/Firefox queda siempre encima
+  (regla de KWin; en Wayland el navegador no puede pedirlo).
 - Dolphin como Finder: iconos con miniaturas, carpetas primero y sin archivos
   ocultos (Ctrl+H los muestra). «Vista rápida» en el menú contextual con Kiview;
   Dolphin aún no permite asignarla a la barra espaciadora. F11 muestra el panel

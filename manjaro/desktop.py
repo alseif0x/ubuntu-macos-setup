@@ -25,6 +25,7 @@ FILES = [
     '.config/inputactions/config.yaml',
     '.config/dolphinrc',
     '.config/kscreenlockerrc',
+    '.config/kwinrulesrc',
     '.local/share/kio/servicemenus/macos-quicklook.desktop',
     '.local/share/applications/macos-trash.desktop',
     '.local/share/applications/macos-launchpad.desktop',
@@ -134,6 +135,27 @@ def copy_into_backup(relative):
         shutil.copy2(source, dest, follow_symlinks=False)
     return True
 
+def pip_rule():
+    """Vídeo flotante siempre encima. En Wayland Chrome no puede pedir «mantener
+    encima» para su ventana Imagen en imagen; una regla de KWin lo fuerza."""
+    group = 'macos-setup-pip'
+    for key, value in {
+        'Description': 'Vídeo flotante (Imagen en imagen) siempre encima',
+        'wmclass': '^(chrome|google-chrome|firefox)$', 'wmclassmatch': '3',
+        'title': '^(Imagen en imagen|Picture[ -]in[ -][Pp]icture)$', 'titlematch': '3',
+        'above': 'true', 'aboverule': '2',
+        'skiptaskbar': 'true', 'skiptaskbarrule': '2',
+        'skipswitcher': 'true', 'skipswitcherrule': '2',
+    }.items():
+        write('kwinrulesrc', group, key, value)
+    rules = run('kreadconfig6', '--file', 'kwinrulesrc', '--group', 'General', '--key', 'rules',
+                capture=True).stdout.strip()
+    names = [name for name in rules.split(',') if name]
+    if group not in names:
+        names.append(group)
+    write('kwinrulesrc', 'General', 'rules', ','.join(names))
+    write('kwinrulesrc', 'General', 'count', len(names))
+
 def backup():
     manifest_path = BACKUP / 'manifest.json'
     if manifest_path.exists():
@@ -207,6 +229,7 @@ def apply():
 
     window_theme()
     finder()
+    pip_rule()
     icons = HOME / '.local/share/icons'
     icons.mkdir(parents=True, exist_ok=True)
     shutil.copy2(HERE / 'assets/tux-bitten.svg', icons / 'tux-bitten.svg')
