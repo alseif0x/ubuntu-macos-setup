@@ -54,6 +54,12 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   de la aplicación, izquierda/derecha cambian de escritorio
   (`manjaro/inputactions.yaml`).
 - El menú de Konsole aparece en la barra superior.
+- Touchpad con curva de aceleración continua estilo Windows (`manjaro/touchpad-curve`):
+  KWin 6.7 no ofrece el perfil personalizado de libinput, así que una pequeña
+  biblioteca precargada en KWin lo aplica al configurar el touchpad. Más fino al
+  ir despacio y sin el salto brusco del perfil adaptativo por encima de ~130 mm/s.
+  Se ajusta en `~/.config/macos-setup/touchpad-curve.conf`; sin ese archivo no
+  hace nada. `touchpad-curve/install.sh --remove` lo desinstala.
 - El vídeo flotante «Imagen en imagen» de Chrome/Firefox queda siempre encima
   (regla de KWin; en Wayland el navegador no puede pedirlo).
 - Dolphin como Finder: iconos con miniaturas, carpetas primero y sin archivos
