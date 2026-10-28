@@ -1,16 +1,22 @@
-// Curva de aceleración del touchpad estilo Windows para KWin (Plasma 6.7).
+// Curvas de aceleración estilo Windows para touchpad y ratón en KWin (Plasma 6.7).
 //
 // libinput admite un perfil de aceleración personalizado, pero KWin 6.7 solo
 // ofrece «plano» y «adaptativo». Esta biblioteca se precarga en kwin_wayland
 // (LD_PRELOAD) y, cada vez que KWin configura la velocidad o el perfil de un
-// touchpad, aplica además el perfil personalizado. Ratones y demás dispositivos
-// no se tocan. Sin archivo de configuración no hace nada.
+// touchpad o ratón, aplica además el perfil personalizado. Sin archivo de
+// configuración no hace nada; el ratón solo se toca si hay claves mouse_*.
 //
 // Curva: G(v) = gmin + (gmax - gmin) * (1 - exp(-v / tau)) píxeles por mm de
 // dedo, con v la velocidad del dedo en mm/s. El adaptativo de libinput es casi
 // constante (≈10,5 px/mm) entre 7 y 130 mm/s y luego multiplica hasta ≈55 px/mm;
 // esta curva sube de forma continua. El control de velocidad de KDE escala la
 // curva por 2^velocidad.
+//
+// Ratón: como Windows, trabaja en puntos del sensor y no en mm, así que el botón
+// de DPI del ratón sigue cambiando la sensibilidad. M(v) = mgmin + (mgmax - mgmin)
+// * (1 - exp(-v / mtau)) píxeles por punto, con v en puntos/ms. El adaptativo de
+// libinput da 1 px/punto hasta 0,4 puntos/ms y 2 px/punto desde 1,3 puntos/ms
+// (≈40 mm/s a 800 DPI): casi todo movimiento normal va a la ganancia máxima.
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <errno.h>
@@ -24,6 +30,7 @@ struct curve {
 	double gmin, gmax, tau;  // px/mm y mm/s
 	double resolution;       // unidades del touchpad por mm (eje X)
 	double scroll;           // px por mm al desplazar con dos dedos
+	double mgmin, mgmax, mtau; // ratón: px/punto y puntos/ms (mgmin 0 = no tocar)
 };
 
 static int load_curve(struct curve *c)
@@ -41,22 +48,30 @@ static int load_curve(struct curve *c)
 	FILE *f = fopen(path, "r");
 	if (!f)
 		return 0;
-	*c = (struct curve){ .gmin = 4, .gmax = 30, .tau = 180, .resolution = 0, .scroll = 10.5 };
+	*c = (struct curve){ .gmin = 4, .gmax = 30, .tau = 180, .resolution = 0, .scroll = 10.5,
+			     .mgmin = 0, .mgmax = 2, .mtau = 6 };
 	char line[256];
 	while (fgets(line, sizeof line, f)) {
 		char key[64];
 		double value;
-		if (line[0] == '#' || sscanf(line, " %63[a-z] = %lf", key, &value) != 2)
+		if (line[0] == '#' || sscanf(line, " %63[a-z_] = %lf", key, &value) != 2)
 			continue;
 		if (!strcmp(key, "gmin")) c->gmin = value;
 		else if (!strcmp(key, "gmax")) c->gmax = value;
 		else if (!strcmp(key, "tau")) c->tau = value;
 		else if (!strcmp(key, "resolution")) c->resolution = value;
 		else if (!strcmp(key, "scroll")) c->scroll = value;
+		else if (!strcmp(key, "mouse_gmin")) c->mgmin = value;
+		else if (!strcmp(key, "mouse_gmax")) c->mgmax = value;
+		else if (!strcmp(key, "mouse_tau")) c->mtau = value;
 	}
 	fclose(f);
 	// Valores absurdos dejarían el puntero inmóvil o disparado: mejor no aplicar nada.
-	return c->resolution > 0 && c->gmin > 0 && c->gmax >= c->gmin && c->tau > 0 && c->scroll > 0;
+	if (!(c->mgmin > 0 && c->mgmax >= c->mgmin && c->mtau > 0))
+		c->mgmin = 0;
+	if (!(c->resolution > 0 && c->gmin > 0 && c->gmax >= c->gmin && c->tau > 0 && c->scroll > 0))
+		c->resolution = 0;
+	return c->resolution > 0 || c->mgmin > 0;
 }
 
 static int is_touchpad(struct libinput_device *device)
@@ -64,32 +79,74 @@ static int is_touchpad(struct libinput_device *device)
 	return libinput_device_config_tap_get_finger_count(device) > 0;
 }
 
+static int is_mouse(struct libinput_device *device)
+{
+	return !is_touchpad(device) && libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_POINTER) &&
+	       libinput_device_config_accel_is_available(device);
+}
+
 // libinput_device_config_accel_apply llama por dentro a set_profile/set_speed:
 // sin esta marca, interceptarlas de nuevo crearía una recursión infinita.
 static __thread int applying;
-// Cambiar de perfil devuelve la velocidad de libinput a 0: recordar la que pidió KDE.
-static double requested_speed = NAN;
+// Cambiar de perfil devuelve la velocidad de libinput a 0: recordar la que pidió
+// KDE para cada dispositivo.
+static struct { struct libinput_device *device; double speed; } requested[16];
 
-#define POINTS 51         // velocidades de 0 a 500 mm/s
+static void remember_speed(struct libinput_device *device, double speed)
+{
+	for (size_t i = 0; i < sizeof requested / sizeof *requested; i++)
+		if (requested[i].device == device || !requested[i].device) {
+			requested[i].device = device;
+			requested[i].speed = speed;
+			return;
+		}
+}
+
+static double requested_speed(struct libinput_device *device)
+{
+	for (size_t i = 0; i < sizeof requested / sizeof *requested; i++)
+		if (requested[i].device == device)
+			return requested[i].speed;
+	return libinput_device_config_accel_get_speed(device);
+}
+
+#define POINTS 51         // touchpad: de 0 a 500 mm/s; ratón: de 0 a 30 puntos/ms
 #define STEP_MM_S 10.0
+#define MOUSE_STEP 0.6
 
 static void apply_curve(struct libinput_device *device, double speed)
 {
 	struct curve c;
-	if (applying || !is_touchpad(device) || !load_curve(&c))
+	if (applying || !load_curve(&c))
+		return;
+	int touchpad = is_touchpad(device);
+	if (touchpad ? c.resolution <= 0 : (!is_mouse(device) || c.mgmin <= 0))
 		return;
 
 	double scale = pow(2.0, speed);
-	// Entrada: unidades del touchpad por ms; salida: píxeles por ms.
-	double step = STEP_MM_S * c.resolution / 1000.0;
-	double motion[POINTS];
-	for (int i = 0; i < POINTS; i++) {
-		double v = i * STEP_MM_S;
-		double gain = scale * (c.gmin + (c.gmax - c.gmin) * (1.0 - exp(-v / c.tau)));
-		motion[i] = gain * v / 1000.0;
+	double step, motion[POINTS], constant[2];
+	if (touchpad) {
+		// Entrada: unidades del touchpad por ms; salida: píxeles por ms.
+		step = STEP_MM_S * c.resolution / 1000.0;
+		for (int i = 0; i < POINTS; i++) {
+			double v = i * STEP_MM_S;
+			double gain = scale * (c.gmin + (c.gmax - c.gmin) * (1.0 - exp(-v / c.tau)));
+			motion[i] = gain * v / 1000.0;
+		}
+		// Desplazamiento y gestos: constante, igual que el filtro adaptativo actual.
+		constant[0] = 0.0;
+		constant[1] = c.scroll / c.resolution;
+	} else {
+		// Entrada: puntos del sensor por ms; salida: píxeles por ms.
+		step = MOUSE_STEP;
+		for (int i = 0; i < POINTS; i++) {
+			double v = i * MOUSE_STEP;
+			motion[i] = scale * (c.mgmin + (c.mgmax - c.mgmin) * (1.0 - exp(-v / c.mtau))) * v;
+		}
+		// Rueda y demás: sin aceleración (1 punto = 1 unidad), como el perfil plano.
+		constant[0] = 0.0;
+		constant[1] = 1.0;
 	}
-	// Desplazamiento y gestos: constante, igual que el filtro adaptativo actual.
-	double constant[2] = { 0.0, c.scroll / c.resolution };
 
 	struct libinput_config_accel *config =
 		libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
@@ -130,8 +187,8 @@ libinput_device_config_accel_set_speed(struct libinput_device *device, double sp
 		real = dlsym(RTLD_NEXT, "libinput_device_config_accel_set_speed");
 	enum libinput_config_status status = real(device, speed);
 	if (status == LIBINPUT_CONFIG_STATUS_SUCCESS) {
-		if (!applying && is_touchpad(device))
-			requested_speed = speed;
+		if (!applying)
+			remember_speed(device, speed);
 		apply_curve(device, speed);
 	}
 	return status;
@@ -147,8 +204,6 @@ libinput_device_config_accel_set_profile(struct libinput_device *device,
 		real = dlsym(RTLD_NEXT, "libinput_device_config_accel_set_profile");
 	enum libinput_config_status status = real(device, profile);
 	if (status == LIBINPUT_CONFIG_STATUS_SUCCESS)
-		apply_curve(device, isnan(requested_speed) || !is_touchpad(device)
-					    ? libinput_device_config_accel_get_speed(device)
-					    : requested_speed);
+		apply_curve(device, requested_speed(device));
 	return status;
 }

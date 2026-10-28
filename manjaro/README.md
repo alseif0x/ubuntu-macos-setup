@@ -58,6 +58,8 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   KWin 6.7 no ofrece el perfil personalizado de libinput, así que una pequeña
   biblioteca precargada en KWin lo aplica al configurar el touchpad. Más fino al
   ir despacio y sin el salto brusco del perfil adaptativo por encima de ~130 mm/s.
+  También aplica a los ratones (claves `mouse_*`): de 0,5 a 2 px por punto del
+  sensor según la velocidad, en lugar de los 2 px/punto casi constantes de libinput.
   Se ajusta en `~/.config/macos-setup/touchpad-curve.conf`; sin ese archivo no
   hace nada. `touchpad-curve/install.sh --remove` lo desinstala.
 - El vídeo flotante «Imagen en imagen» de Chrome/Firefox queda siempre encima
