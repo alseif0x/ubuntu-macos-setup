@@ -26,6 +26,7 @@ FILES = [
     '.config/dolphinrc',
     '.config/kscreenlockerrc',
     '.config/kwinrulesrc',
+    '.config/powerdevilrc',
     '.local/share/kio/servicemenus/macos-quicklook.desktop',
     '.local/share/applications/macos-trash.desktop',
     '.local/share/applications/macos-launchpad.desktop',
@@ -273,6 +274,13 @@ def apply():
         ('kwinrc', 'TabBox', 'HighlightWindows', 'false'),
         # Sonidos suaves de elementary (system.sh); los de Apple no son redistribuibles.
         ('kdeglobals', 'Sounds', 'Theme', 'elementary'),
+        # Cerrar la tapa solo bloquea (como Meta+L) y no se suspende por inactividad:
+        # los procesos siguen; suspender o apagar lo decide el usuario. Con batería
+        # baja se mantiene la suspensión automática como protección.
+        *[('powerdevilrc', [profile, 'SuspendAndShutdown'], 'LidAction', '32')
+          for profile in ['AC', 'Battery', 'LowBattery']],
+        *[('powerdevilrc', [profile, 'SuspendAndShutdown'], 'AutoSuspendAction', '0')
+          for profile in ['AC', 'Battery']],
         ('krunnerrc', 'General', 'FreeFloating', 'true'),
         ('krunnerrc', 'General', 'RetainPriorSearch', 'false'),
         ('krunnerrc', 'General', 'historyBehavior', 'Disabled'),
