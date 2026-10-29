@@ -55,7 +55,7 @@ Los repositorios ya descargados se reutilizan sin actualizarlos automáticamente
   (`manjaro/inputactions.yaml`).
 - El menú de Konsole aparece en la barra superior.
 - Cerrar la tapa bloquea la sesión sin suspender, y no hay suspensión automática
-  por inactividad salvo con batería baja: los procesos siguen en marcha.
+  por inactividad: los procesos siguen en marcha.
 - Touchpad con curva de aceleración continua estilo Windows (`manjaro/touchpad-curve`):
   KWin 6.7 no ofrece el perfil personalizado de libinput, así que una pequeña
   biblioteca precargada en KWin lo aplica al configurar el touchpad. Más fino al
